@@ -3,6 +3,7 @@
 
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -33,7 +34,7 @@ check auth-controller.js*/
 userSchema.pre("save", async function () {
   // pre method will make sure that before(pre) data is saved perform this action
   // console.log("pre method", this);   /* show the data which is going to be stored but not yet  */
-  const user = this;
+  const user = this; //written for clarity -- refering to the user object
 
   if (!user.isModified("password")) {
     next(); // same work as .then() method
@@ -76,8 +77,26 @@ header, payload, and signature. These parts are Base64 encoded JSON objects.
  is and to ensure that the message wasn't changed along the way.
 */
 
-userSchema.methods.generateToken =
-  async function () {}; /* this is called making an instance method -- 
+userSchema.methods.generateToken = async function () {
+  //like we made hashed password we are making token in this section
+  try {
+    return jwt.sign(
+      {
+        userId: this._id.toString(),
+        email: this.email,
+        isAdmin: this.isAdmin,
+      },
+      //
+      process.env.JWT_KEY,
+      //
+      {
+        expiresIn: "30d",
+      }
+    );
+  } catch (error) {
+    console.error(error);
+  }
+}; /* this is called making an instance method -- 
   we are making a method of a class using methods keyword
   using this we can make as many methods as we want to make */
 
@@ -90,6 +109,26 @@ Model acts as a higher level abstraction
  Models are created from schemas and enable you to work with MongoDB data
  is a more strctured manner in your application
  */
+
+/*
+      OUTPUT OF POSTMAN
+
+"msg": {
+        "username": "Deepak",
+        "email": "deepak64e5t873@gmail.com",
+        "phone": 123456789,
+        "password": "$2a$10$8V0pMKMed14NHbOrKHGohO15NoN.L5t5Aj/BR8dTjUEw0dUObiZ9W",
+        "isAdmin": false,
+        "_id": "65ddc75ec132fb067e2e3011",
+        "__v": 0
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NWRkYzc1ZWMx
+    MzJmYjA2N2UyZTMwMTEiLCJlbWFpbCI6ImRlZXBhazY0ZTV0ODczQGdtYWlsLmNvbSIsImlzQWRta
+    W4iOmZhbHNlLCJpYXQiOjE3MDkwMzMzMTAsImV4cCI6MTcxMTYyNTMxMH0.3Wzriblf4K1eqjU_
+    vRIaCfjB0wxFIMznEEpLDkh3k5o",
+    
+    "userId": "65ddc75ec132fb067e2e3011"
+} */
 
 const User = new mongoose.model("User", userSchema);
 
