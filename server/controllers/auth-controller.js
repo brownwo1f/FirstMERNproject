@@ -36,7 +36,7 @@ const register = async (req, res) => {
     const userCreated = await User.create({ username, email, phone, password });
 
     res.status(201).json({
-      msg: "Registration Successfull" /*6. response with successfull message */,
+      msg: "Registration Successful" /*6. response with successfull message */,
       token:
         await userCreated.generateToken() /* waiting for the token from user_model.js*/,
       userId:
@@ -53,4 +53,40 @@ const register = async (req, res) => {
   }
 };
 
-module.exports = { home, register };
+/* Login logic
+  1. get registration data (username, email, password)
+  2. check if user not registered 
+  3. compare password
+  4. login user if the password is correct
+  5. respond with login successful message
+*/
+
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body; // 1
+    const userExist = await User.findOne({ email });
+    if (!userExist) {
+      res
+        .status(400)
+        .json("Invalid Credentials"); /* 2. user is not registered yet*/
+    }
+
+    const isPasswordValid = await userExist.passwordValid(password);
+
+    if (isPasswordValid) {
+      res.status(200).json({
+        msg: "Login Successful",
+        token:
+          await userExist.generateToken() /* waiting for the token from user_model.js*/,
+        userId:
+          userExist._id.toString() /*converted the id generated to string also */,
+      });
+    } else {
+      res.status(401).json("Invalid Credentials");
+    }
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+
+module.exports = { home, register, login };

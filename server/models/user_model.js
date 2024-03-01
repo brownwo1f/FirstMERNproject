@@ -48,6 +48,12 @@ userSchema.pre("save", async function () {
   }
 });
 
+/* comparing password */
+userSchema.methods.passwordValid = async function (password) {
+  const result = bcrypt.compare(password, this.password);
+  return result;
+};
+
 /* JSON WEB TOKENS */ //--> Its like a id card in short
 /*
 JWT is a standard for securely transmitting information between parties as a 
