@@ -9,7 +9,7 @@ const home = async (req, res) => {
   }
 };
 
-/* Regitration logic
+/* //! Regitration logic
   1. get registration data (username, email, password)
   2. check if email already registered 
   3. securely hash the password 
@@ -49,11 +49,16 @@ const register = async (req, res) => {
       
       */
   } catch (error) {
-    res.status(500).send({ msg: "Internal server error" });
+    //res.status(500).send({ msg: "Internal server error" });
+    error = {
+      status: 402,
+      message: "Internal Server Error",
+    };
+    next(error); //! Passing error to error middleware
   }
 };
 
-/* Login logic
+/* //! Login logic
   1. get registration data (username, email, password)
   2. check if user not registered 
   3. compare password
@@ -82,10 +87,19 @@ const login = async (req, res) => {
           userExist._id.toString() /*converted the id generated to string also */,
       });
     } else {
-      res.status(401).json("Invalid Credentials");
+      error = {
+        status: 402,
+        message: "Invalid Credentials",
+      };
+      next(error);
     }
   } catch (error) {
-    res.status(500).json(error);
+    // res.status(500).json(error);
+    error = {
+      status: 402,
+      message: "Something wrong happened",
+    };
+    next(error);
   }
 };
 
